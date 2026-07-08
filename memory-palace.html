@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Palace</title>
+<style>
+  :root{
+    --bg:#f4f1ea; --panel:#fffdf8; --panel-2:#faf7f0; --ink:#2b2620; --muted:#8a8175;
+    --line:#e6ddcf; --accent:#9a5b3f; --accent-ink:#fff; --accent-soft:#f0e2d8;
+    --good:#3d7a58; --danger:#b3462f; --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(60,45,30,.06);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; line-height:1.45;
+  }
+  button{font-family:inherit; cursor:pointer}
+  input,textarea{font-family:inherit; color:var(--ink)}
+
+  /* Layout */
+  .app{display:grid; grid-template-columns:300px 1fr; height:100vh; overflow:hidden}
+  .sidebar{background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0}
+  .main{display:flex; flex-direction:column; min-height:0; overflow:hidden}
+
+  /* Sidebar */
+  .brand{padding:18px 18px 12px; border-bottom:1px solid var(--line)}
+  .brand h1{margin:0; font-size:19px; letter-spacing:-.2px; display:flex; align-items:center; gap:8px}
+  .brand .logo{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-soft);border-radius:8px;font-size:15px}
+  .brand p{margin:6px 0 0; font-size:12px; color:var(--muted)}
+  .side-actions{padding:12px; display:flex; flex-direction:column; gap:8px; border-bottom:1px solid var(--line)}
+  .side-actions .row{display:flex; gap:8px}
+  .palace-list{overflow:auto; padding:8px; flex:1; min-height:0}
+  .palace-item{padding:11px 12px; border-radius:10px; border:1px solid transparent; cursor:pointer; margin-bottom:4px; transition:background .12s,border-color .12s}
+  .palace-item:hover{background:var(--panel-2)}
+  .palace-item.active{background:var(--accent-soft); border-color:#e4c9b8}
+  .palace-item .nm{font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .palace-item .mt{font-size:12px; color:var(--muted); margin-top:2px}
+  .side-foot{padding:10px 12px; border-top:1px solid var(--line); font-size:11px; color:var(--muted); display:flex; justify-content:space-between; align-items:center}
+
+  /* Buttons */
+  .btn{border:1px solid var(--line); background:var(--panel); color:var(--ink); padding:8px 12px; border-radius:9px; font-size:13px; font-weight:500; display:inline-flex; align-items:center; gap:6px; justify-content:center; white-space:nowrap}
+  .btn:hover{background:var(--panel-2)}
+  .btn.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+  .btn.primary:hover{filter:brightness(1.05)}
+  .btn.ghost{border-color:transparent; background:transparent}
+  .btn.ghost:hover{background:var(--panel-2)}
+  .btn.danger{color:var(--danger)}
+  .btn.sm{padding:5px 9px; font-size:12px}
+  .btn.block{width:100%}
+  .btn:disabled{opacity:.45; cursor:not-allowed}
+
+  /* Dropdown */
+  .dd{position:relative}
+  .dd-menu{position:absolute; z-index:40; top:calc(100% + 6px); right:0; min-width:210px; background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); padding:6px; display:none}
+  .dd.open .dd-menu{display:block}
+  .dd-menu button{display:flex; width:100%; text-align:left; align-items:center; gap:9px; background:transparent; border:0; padding:9px 10px; border-radius:8px; font-size:13px; color:var(--ink)}
+  .dd-menu button:hover{background:var(--panel-2)}
+  .dd-menu .sep{height:1px; background:var(--line); margin:5px 4px}
+  .dd-menu .lbl{font-size:11px; color:var(--muted); padding:6px 10px 2px; text-transform:uppercase; letter-spacing:.4px}
+
+  /* Main header */
+  .topbar{padding:14px 22px; border-bottom:1px solid var(--line); background:var(--panel); display:flex; gap:12px; align-items:center; justify-content:space-between}
+  .topbar .title-wrap{min-width:0; flex:1}
+  .p-name{font-size:20px; font-weight:700; border:1px solid transparent; background:transparent; padding:4px 6px; border-radius:8px; width:100%; letter-spacing:-.3px}
+  .p-name:hover{background:var(--panel-2)}
+  .p-name:focus{outline:none; border-color:var(--line); background:#fff}
+  .p-desc{width:100%; border:1px solid transparent; background:transparent; padding:2px 6px; border-radius:8px; font-size:13px; color:var(--muted); resize:none; margin-top:2px}
+  .p-desc:hover{background:var(--panel-2)}
+  .p-desc:focus{outline:none; border-color:var(--line); background:#fff; color:var(--ink)}
+  .top-actions{display:flex; gap:8px; align-items:center; flex-shrink:0}
+
+  /* Content */
+  .content{overflow:auto; padding:22px; flex:1; min-height:0}
+  .loci-head{display:flex; align-items:center; justify-content:space-between; margin:0 0 14px}
+  .loci-head h2{margin:0; font-size:14px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted)}
+  .loci{display:flex; flex-direction:column; gap:12px; max-width:900px}
+
+  .locus{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 14px 14px 12px; box-shadow:var(--shadow); display:grid; grid-template-columns:34px 1fr auto; gap:12px; align-items:start}
+  .locus .num{width:34px; height:34px; border-radius:9px; background:var(--accent-soft); color:var(--accent); font-weight:700; display:flex; align-items:center; justify-content:center; font-size:14px; margin-top:2px}
+  .locus .fields{display:flex; flex-direction:column; gap:8px; min-width:0}
+  .fld label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-bottom:3px}
+  .fld input, .fld textarea{width:100%; border:1px solid var(--line); background:#fff; border-radius:9px; padding:8px 10px; font-size:14px}
+  .fld textarea{resize:vertical; min-height:38px}
+  .fld input:focus, .fld textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .locus .tools{display:flex; flex-direction:column; gap:4px; align-items:center}
+  .icon-btn{width:30px; height:28px; border-radius:7px; border:1px solid var(--line); background:var(--panel); display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--muted)}
+  .icon-btn:hover{background:var(--panel-2); color:var(--ink)}
+  .icon-btn.del:hover{color:var(--danger); border-color:#e6c3ba}
+  .icon-btn:disabled{opacity:.3; cursor:not-allowed}
+
+  .empty{display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; color:var(--muted); padding:40px}
+  .empty .big{font-size:44px; margin-bottom:10px}
+  .empty h3{margin:0 0 6px; color:var(--ink); font-weight:700}
+  .empty p{margin:0 0 16px; max-width:380px; font-size:14px}
+
+  .add-locus{border:1.5px dashed var(--line); background:transparent; color:var(--accent); border-radius:var(--radius); padding:13px; font-weight:600; font-size:14px; width:100%; max-width:900px; margin-top:12px}
+  .add-locus:hover{background:var(--accent-soft); border-color:#e4c9b8}
+
+  /* Modal */
+  .overlay{position:fixed; inset:0; background:rgba(40,32,22,.42); display:none; align-items:center; justify-content:center; z-index:60; padding:20px}
+  .overlay.open{display:flex}
+  .modal{background:var(--panel); border-radius:16px; box-shadow:var(--shadow); width:100%; max-width:560px; max-height:88vh; display:flex; flex-direction:column; overflow:hidden}
+  .modal .m-head{padding:16px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between}
+  .modal .m-head h3{margin:0; font-size:17px}
+  .modal .m-body{padding:20px; overflow:auto}
+  .modal .m-foot{padding:14px 20px; border-top:1px solid var(--line); display:flex; gap:8px; justify-content:space-between; align-items:center}
+
+  /* Rehearse */
+  .rehearse .stage{background:var(--panel-2); border:1px solid var(--line); border-radius:14px; padding:26px; text-align:center; min-height:210px; display:flex; flex-direction:column; justify-content:center}
+  .rehearse .loc{font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--muted)}
+  .rehearse .loc-name{font-size:24px; font-weight:800; margin:6px 0 14px; letter-spacing:-.3px}
+  .rehearse .note{font-size:15px; color:var(--muted); font-style:italic; margin-bottom:18px}
+  .rehearse .answer{font-size:22px; font-weight:700; color:var(--accent); min-height:30px}
+  .rehearse .answer.hidden{color:transparent; background:var(--accent-soft); border-radius:8px; user-select:none}
+  .rehearse .progress{font-size:12px; color:var(--muted); text-align:center; margin-top:14px}
+  .rehearse .nav{display:flex; gap:8px; justify-content:center; margin-top:16px}
+
+  textarea.io{width:100%; min-height:180px; border:1px solid var(--line); border-radius:10px; padding:12px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; background:#fff}
+  .hint{font-size:12px; color:var(--muted); margin:0 0 10px}
+
+  .toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; padding:11px 18px; border-radius:10px; font-size:13px; opacity:0; transition:.25s; z-index:80; pointer-events:none; box-shadow:var(--shadow)}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  /* Print */
+  #printArea{display:none}
+  @media print{
+    body{background:#fff}
+    .app,.overlay,.toast{display:none !important}
+    #printArea{display:block !important; padding:0}
+    .print-palace{page-break-after:always; padding:6px 0 0}
+    .print-palace:last-child{page-break-after:auto}
+    .print-palace h1{font-size:22px; margin:0 0 2px}
+    .print-palace .pd{color:#555; font-size:13px; margin:0 0 14px}
+    .print-locus{border:1px solid #ccc; border-radius:8px; padding:10px 12px; margin-bottom:9px; page-break-inside:avoid}
+    .print-locus .pl-loc{font-weight:700; font-size:14px}
+    .print-locus .pl-item{font-size:14px; margin-top:2px}
+    .print-locus .pl-note{font-size:12px; color:#555; font-style:italic; margin-top:2px}
+    .print-num{display:inline-block; min-width:22px; color:#9a5b3f; font-weight:700}
+  }
+  @page{margin:16mm}
+
+  @media (max-width:720px){
+    .app{grid-template-columns:1fr}
+    .sidebar{position:fixed; z-index:50; width:280px; height:100%; transform:translateX(-100%); transition:transform .2s}
+    .sidebar.open{transform:none}
+    .menu-toggle{display:inline-flex !important}
+  }
+  .menu-toggle{display:none}
+</style>
+</head>
+<body>
+<a href="index.html" style="position:fixed;bottom:14px;left:14px;z-index:99999;background:#4f46e5;color:#fff;text-decoration:none;padding:10px 16px;border-radius:999px;font-family:sans-serif;font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.35)">🏠 All Quizzes</a>
+<div class="app" id="app">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <h1><span class="logo">🏛️</span> Memory Palace</h1>
+      <p>Record loci, rehearse, and export your palaces.</p>
+    </div>
+    <div class="side-actions">
+      <button class="btn primary block" onclick="newPalace()">＋ New palace</button>
+      <div class="row">
+        <button class="btn sm" style="flex:1" onclick="triggerImport()">⇧ Import</button>
+        <div class="dd" id="exportAllDD" style="flex:1">
+          <button class="btn sm block" onclick="toggleDD('exportAllDD',event)">⇩ Export all ▾</button>
+          <div class="dd-menu">
+            <div class="lbl">Export all palaces</div>
+            <button onclick="exportAll('json')">🗂️ JSON backup (.json)</button>
+            <button onclick="exportAll('md')">📝 Text / Markdown (.md)</button>
+            <button onclick="exportAll('print')">🖨️ Print / Save as PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="palace-list" id="palaceList"></div>
+    <div class="side-foot">
+      <span id="countLabel">0 palaces</span>
+      <button class="btn ghost sm" onclick="loadSample()" title="Add an example palace">✨ Sample</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <section class="main">
+    <div id="mainInner" style="display:flex;flex-direction:column;min-height:0;flex:1"></div>
+  </section>
+</div>
+
+<!-- Rehearse modal -->
+<div class="overlay" id="rehearseOverlay">
+  <div class="modal rehearse">
+    <div class="m-head">
+      <h3>🚶 Rehearse journey</h3>
+      <button class="btn ghost sm" onclick="closeRehearse()">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="stage">
+        <div class="loc">Location</div>
+        <div class="loc-name" id="rhLoc">—</div>
+        <div class="note" id="rhNote"></div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">What's here?</div>
+          <div class="answer hidden" id="rhAns" onclick="revealAnswer()">tap to reveal</div>
+        </div>
+      </div>
+      <div class="progress" id="rhProg"></div>
+      <div class="nav">
+        <button class="btn sm" onclick="rehearseStep(-1)">← Prev</button>
+        <button class="btn sm" onclick="revealAnswer()">Reveal</button>
+        <button class="btn primary sm" onclick="rehearseStep(1)">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Import modal -->
+<div class="overlay" id="importOverlay">
+  <div class="modal">
+    <div class="m-head"><h3>Import palaces</h3><button class="btn ghost sm" onclick="closeModal('importOverlay')">✕</button></div>
+    <div class="m-body">
+      <p class="hint">Choose a <strong>.json</strong> file you exported earlier, or paste JSON below. Imported palaces are added to your current ones (nothing is overwritten).</p>
+      <button class="btn" onclick="document.getElementById('fileInput').click()">📁 Choose .json file…</button>
+      <input type="file" id="fileInput" accept=".json,application/json" style="display:none" onchange="importFromFile(event)">
+      <p class="hint" style="margin-top:16px">Or paste JSON:</p>
+      <textarea class="io" id="importText" placeholder='{"version":1,"palaces":[ ... ]}'></textarea>
+    </div>
+    <div class="m-foot">
+      <span class="hint" id="importMsg"></span>
+      <button class="btn primary" onclick="importFromText()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm modal -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="max-width:420px">
+    <div class="m-head"><h3 id="confirmTitle">Are you sure?</h3></div>
+    <div class="m-body"><p id="confirmMsg" style="margin:0"></p></div>
+    <div class="m-foot" style="justify-content:flex-end">
+      <button class="btn" onclick="closeModal('confirmOverlay')">Cancel</button>
+      <button class="btn primary" id="confirmOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ---------------- Storage ---------------- */
+const KEY = "memoryPalaces_v1";
+let state = { version:1, palaces:[] };
+let currentId = null;
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function nowISO(){ return new Date().toISOString(); }
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){ const p = JSON.parse(raw); if(p && Array.isArray(p.palaces)) state = p; }
+  }catch(e){ console.warn("Load failed", e); }
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch(e){ toast("⚠️ Could not save (storage full or blocked)"); }
+}
+
+/* ---------------- Model helpers ---------------- */
+function getPalace(id){ return state.palaces.find(p=>p.id===id); }
+function current(){ return getPalace(currentId); }
+
+function newPalace(){
+  const p = { id:uid(), name:"Untitled palace", description:"", createdAt:nowISO(), updatedAt:nowISO(),
+              loci:[ blankLocus() ] };
+  state.palaces.unshift(p);
+  currentId = p.id;
+  save(); renderAll();
+  setTimeout(()=>{ const el=document.querySelector('.p-name'); if(el){ el.focus(); el.select&&el.select(); } },50);
+}
+function blankLocus(){ return { id:uid(), location:"", item:"", imageNote:"" }; }
+
+function touch(p){ p.updatedAt = nowISO(); }
+
+function deletePalace(id){
+  const p = getPalace(id); if(!p) return;
+  confirmAsk("Delete palace?", `"${p.name||'Untitled'}" and its ${p.loci.length} location(s) will be permanently removed.`, ()=>{
+    state.palaces = state.palaces.filter(x=>x.id!==id);
+    if(currentId===id) currentId = state.palaces[0] ? state.palaces[0].id : null;
+    save(); renderAll(); toast("Palace deleted");
+  });
+}
+function duplicatePalace(id){
+  const p = getPalace(id); if(!p) return;
+  const copy = JSON.parse(JSON.stringify(p));
+  copy.id = uid(); copy.name = p.name + " (copy)"; copy.createdAt = copy.updatedAt = nowISO();
+  copy.loci = copy.loci.map(l=>({ ...l, id:uid() }));
+  const idx = state.palaces.findIndex(x=>x.id===id);
+  state.palaces.splice(idx+1, 0, copy);
+  currentId = copy.id; save(); renderAll(); toast("Palace duplicated");
+}
+
+/* ---------------- Rendering ---------------- */
+function renderAll(){ renderSidebar(); renderMain(); }
+
+function renderSidebar(){
+  const list = document.getElementById('palaceList');
+  const cnt = state.palaces.length;
+  document.getElementById('countLabel').textContent = cnt + (cnt===1?" palace":" palaces");
+  document.getElementById('exportAllDD').querySelector('button').disabled = cnt===0;
+  if(cnt===0){ list.innerHTML = '<div style="padding:18px;color:var(--muted);font-size:13px;text-align:center">No palaces yet.<br>Create one to begin.</div>'; return; }
+  list.innerHTML = state.palaces.map(p=>`
+    <div class="palace-item ${p.id===currentId?'active':''}" onclick="selectPalace('${p.id}')">
+      <div class="nm">${esc(p.name||'Untitled palace')}</div>
+      <div class="mt">${p.loci.length} location${p.loci.length===1?'':'s'}</div>
+    </div>`).join('');
+}
+
+function selectPalace(id){ currentId = id; renderAll(); if(window.innerWidth<=720) toggleSidebar(false); }
+
+function renderMain(){
+  const host = document.getElementById('mainInner');
+  const p = current();
+  if(!p){
+    host.innerHTML = `
+      <div class="empty">
+        <div class="big">🏛️</div>
+        <h3>Build your first memory palace</h3>
+        <p>A memory palace links things you want to remember to familiar places. Add locations, drop a vivid item at each, then rehearse the journey.</p>
+        <div style="display:flex;gap:8px">
+          <button class="btn primary" onclick="newPalace()">＋ New palace</button>
+          <button class="btn" onclick="loadSample()">✨ Load a sample</button>
+        </div>
+      </div>`;
+    return;
+  }
+  host.innerHTML = `
+    <div class="topbar">
+      <button class="btn ghost sm menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="title-wrap">
+        <input class="p-name" id="pName" value="${escAttr(p.name)}" placeholder="Palace name"
+               oninput="updateField('name', this.value)">
+        <textarea class="p-desc" id="pDesc" rows="1" placeholder="Add a description (the route, theme, or purpose)…"
+               oninput="updateField('description', this.value); autoGrow(this)">${esc(p.description)}</textarea>
+      </div>
+      <div class="top-actions">
+        <button class="btn sm" onclick="openRehearse()" ${p.loci.some(l=>l.item)?'':'disabled'}>🚶 Rehearse</button>
+        <div class="dd" id="exportOneDD">
+          <button class="btn sm" onclick="toggleDD('exportOneDD',event)">⇩ Export ▾</button>
+          <div class="dd-menu">
+            <div class="lbl">Export this palace</div>
+            <button onclick="exportOne('json')">🗂️ JSON (.json)</button>
+            <button onclick="exportOne('md')">📝 Text / Markdown (.md)</button>
+            <button onclick="exportOne('print')">🖨️ Print / Save as PDF</button>
+          </div>
+        </div>
+        <div class="dd" id="moreDD">
+          <button class="btn sm ghost" onclick="toggleDD('moreDD',event)">⋯</button>
+          <div class="dd-menu">
+            <button onclick="duplicatePalace('${p.id}')">⧉ Duplicate</button>
+            <div class="sep"></div>
+            <button class="danger" onclick="deletePalace('${p.id}')" style="color:var(--danger)">🗑 Delete palace</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="loci-head">
+        <h2>Locations · ${p.loci.length}</h2>
+        <span style="font-size:12px;color:var(--muted)">Walk them in a fixed order</span>
+      </div>
+      <div class="loci" id="lociWrap">
+        ${p.loci.map((l,i)=>locusHTML(l,i,p.loci.length)).join('')}
+      </div>
+      <button class="add-locus" onclick="addLocus()">＋ Add location</button>
+    </div>`;
+  const d = document.getElementById('pDesc'); if(d) autoGrow(d);
+}
+
+function locusHTML(l, i, total){
+  return `
+  <div class="locus" data-id="${l.id}">
+    <div class="num">${i+1}</div>
+    <div class="fields">
+      <div class="fld">
+        <label>Location / spot</label>
+        <input value="${escAttr(l.location)}" placeholder="e.g. Front door"
+               oninput="updateLocus('${l.id}','location',this.value)">
+      </div>
+      <div class="grid2">
+        <div class="fld">
+          <label>Item to remember</label>
+          <input value="${escAttr(l.item)}" placeholder="e.g. Milk"
+                 oninput="updateLocus('${l.id}','item',this.value)">
+        </div>
+        <div class="fld">
+          <label>Image note (make it vivid)</label>
+          <input value="${escAttr(l.imageNote)}" placeholder="e.g. Milk flooding out the door"
+                 oninput="updateLocus('${l.id}','imageNote',this.value)">
+        </div>
+      </div>
+    </div>
+    <div class="tools">
+      <button class="icon-btn" title="Move up"   onclick="moveLocus('${l.id}',-1)" ${i===0?'disabled':''}>↑</button>
+      <button class="icon-btn" title="Move down" onclick="moveLocus('${l.id}',1)" ${i===total-1?'disabled':''}>↓</button>
+      <button class="icon-btn del" title="Delete" onclick="removeLocus('${l.id}')">🗑</button>
+    </div>
+  </div>`;
+}
+
+function autoGrow(el){ el.style.height='auto'; el.style.height=(el.scrollHeight)+'px'; }
+
+/* ---------------- Editing ---------------- */
+function updateField(field, val){ const p=current(); if(!p) return; p[field]=val; touch(p); save();
+  if(field==='name'){ renderSidebar(); } }
+
+function updateLocus(id, field, val){ const p=current(); if(!p) return;
+  const l=p.loci.find(x=>x.id===id); if(!l) return; l[field]=val; touch(p); save();
+  if(field==='item'){ // toggle rehearse button availability without full re-render
+    const rb=document.querySelector('.top-actions .btn'); if(rb) rb.disabled=!p.loci.some(x=>x.item);
+  }
+}
+function addLocus(){ const p=current(); if(!p) return; p.loci.push(blankLocus()); touch(p); save(); renderMain(); renderSidebar();
+  setTimeout(()=>{ const nodes=document.querySelectorAll('.locus input'); if(nodes.length) nodes[nodes.length-3]?.focus(); },40); }
+function removeLocus(id){ const p=current(); if(!p) return;
+  p.loci=p.loci.filter(x=>x.id!==id); if(p.loci.length===0) p.loci.push(blankLocus());
+  touch(p); save(); renderMain(); renderSidebar(); }
+function moveLocus(id, dir){ const p=current(); if(!p) return;
+  const i=p.loci.findIndex(x=>x.id===id); const j=i+dir; if(j<0||j>=p.loci.length) return;
+  [p.loci[i],p.loci[j]]=[p.loci[j],p.loci[i]]; touch(p); save(); renderMain(); }
+
+/* ---------------- Export ---------------- */
+function download(filename, text, type){
+  const blob=new Blob([text],{type:type||'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },100);
+}
+function slug(s){ return (s||'palace').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'palace'; }
+function dateStamp(){ const d=new Date(); return d.getFullYear()+ '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+
+function palaceToMd(p){
+  let s = `# ${p.name||'Untitled palace'}\n\n`;
+  if(p.description) s += `${p.description}\n\n`;
+  s += `_${p.loci.length} location(s)_\n\n`;
+  p.loci.forEach((l,i)=>{
+    s += `${i+1}. **${l.location||'(location)'}** — ${l.item||'(item)'}\n`;
+    if(l.imageNote) s += `   - _Image:_ ${l.imageNote}\n`;
+  });
+  return s + '\n';
+}
+function exportOne(fmt){
+  const p=current(); if(!p) return; closeAllDD();
+  if(fmt==='json'){ download(`${slug(p.name)}.json`, JSON.stringify({version:1,exportedAt:nowISO(),palaces:[p]},null,2),'application/json'); toast('Exported JSON'); }
+  else if(fmt==='md'){ download(`${slug(p.name)}.md`, palaceToMd(p),'text/markdown;charset=utf-8'); toast('Exported Markdown'); }
+  else if(fmt==='print'){ printPalaces([p]); }
+}
+function exportAll(fmt){
+  if(state.palaces.length===0) return; closeAllDD();
+  if(fmt==='json'){ download(`memory-palaces-${dateStamp()}.json`, JSON.stringify({version:1,exportedAt:nowISO(),palaces:state.palaces},null,2),'application/json'); toast('Exported all (JSON)'); }
+  else if(fmt==='md'){ let s=`# Memory Palaces\n\n_Exported ${dateStamp()} · ${state.palaces.length} palace(s)_\n\n---\n\n`; s+=state.palaces.map(palaceToMd).join('\n---\n\n'); download(`memory-palaces-${dateStamp()}.md`, s,'text/markdown;charset=utf-8'); toast('Exported all (Markdown)'); }
+  else if(fmt==='print'){ printPalaces(state.palaces); }
+}
+function printPalaces(palaces){
+  const area=document.getElementById('printArea');
+  area.innerHTML = palaces.map(p=>`
+    <div class="print-palace">
+      <h1>${esc(p.name||'Untitled palace')}</h1>
+      ${p.description?`<p class="pd">${esc(p.description)}</p>`:''}
+      ${p.loci.map((l,i)=>`
+        <div class="print-locus">
+          <div class="pl-loc"><span class="print-num">${i+1}.</span>${esc(l.location||'(location)')}</div>
+          <div class="pl-item">➡ ${esc(l.item||'(item)')}</div>
+          ${l.imageNote?`<div class="pl-note">🖼 ${esc(l.imageNote)}</div>`:''}
+        </div>`).join('')}
+    </div>`).join('');
+  closeAllDD();
+  setTimeout(()=>window.print(), 60);
+}
+
+/* ---------------- Import ---------------- */
+function triggerImport(){ document.getElementById('importText').value=''; document.getElementById('importMsg').textContent=''; openModal('importOverlay'); }
+function importFromFile(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ document.getElementById('importText').value=r.result; importFromText(); };
+  r.readAsText(f); e.target.value='';
+}
+function importFromText(){
+  const txt=document.getElementById('importText').value.trim();
+  const msg=document.getElementById('importMsg');
+  if(!txt){ msg.textContent='Nothing to import.'; return; }
+  let data; try{ data=JSON.parse(txt); }catch(err){ msg.textContent='⚠️ Invalid JSON.'; return; }
+  let incoming = Array.isArray(data) ? data : (data.palaces || (data.loci ? [data] : null));
+  if(!Array.isArray(incoming)){ msg.textContent='⚠️ No palaces found in this file.'; return; }
+  let added=0;
+  incoming.forEach(raw=>{
+    if(!raw || typeof raw!=='object') return;
+    const p={ id:uid(), name:String(raw.name||'Imported palace'), description:String(raw.description||''),
+              createdAt:raw.createdAt||nowISO(), updatedAt:nowISO(),
+              loci:Array.isArray(raw.loci)?raw.loci.map(l=>({ id:uid(),
+                location:String(l.location||l.place||''), item:String(l.item||l.thing||''),
+                imageNote:String(l.imageNote||l.note||l.image||'') })):[] };
+    if(p.loci.length===0) p.loci.push(blankLocus());
+    state.palaces.unshift(p); added++;
+  });
+  save(); closeModal('importOverlay');
+  if(added){ currentId=state.palaces[0].id; renderAll(); toast(`Imported ${added} palace${added===1?'':'s'}`); }
+  else msg.textContent='⚠️ No valid palaces found.';
+}
+
+/* ---------------- Rehearse ---------------- */
+let rhIndex=0, rhList=[];
+function openRehearse(){ const p=current(); if(!p) return;
+  rhList=p.loci.filter(l=>l.item||l.location); if(rhList.length===0){ toast('Add an item first'); return; }
+  rhIndex=0; showRehearse(); openModal('rehearseOverlay'); }
+function showRehearse(){
+  const l=rhList[rhIndex]; if(!l) return;
+  document.getElementById('rhLoc').textContent=l.location||'(unnamed spot)';
+  document.getElementById('rhNote').textContent=l.imageNote?('🖼 '+l.imageNote):'';
+  const ans=document.getElementById('rhAns'); ans.textContent=l.item||'(no item)'; ans.classList.add('hidden');
+  ans.dataset.revealed=''; ans.textContent='tap to reveal';
+  document.getElementById('rhProg').textContent=`${rhIndex+1} of ${rhList.length}`;
+}
+function revealAnswer(){ const l=rhList[rhIndex]; const ans=document.getElementById('rhAns');
+  ans.classList.remove('hidden'); ans.textContent=l.item||'(no item)'; ans.dataset.revealed='1'; }
+function rehearseStep(d){ rhIndex+=d; if(rhIndex<0) rhIndex=0; if(rhIndex>=rhList.length) rhIndex=rhList.length-1; showRehearse(); }
+function closeRehearse(){ closeModal('rehearseOverlay'); }
+
+/* ---------------- Confirm ---------------- */
+let confirmCb=null;
+function confirmAsk(title,msg,cb){ document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').textContent=msg; confirmCb=cb; openModal('confirmOverlay'); }
+document.getElementById('confirmOk').addEventListener('click',()=>{ closeModal('confirmOverlay'); if(confirmCb) confirmCb(); confirmCb=null; });
+
+/* ---------------- UI utils ---------------- */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
+
+function toggleDD(id,e){ if(e) e.stopPropagation(); const dd=document.getElementById(id); const wasOpen=dd.classList.contains('open'); closeAllDD(); if(!wasOpen) dd.classList.add('open'); }
+function closeAllDD(){ document.querySelectorAll('.dd.open').forEach(d=>d.classList.remove('open')); }
+document.addEventListener('click',()=>closeAllDD());
+
+function toggleSidebar(force){ const s=document.getElementById('sidebar'); if(force===false) s.classList.remove('open'); else s.classList.toggle('open'); }
+
+let toastTimer=null;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200); }
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s){ return esc(s).replace(/"/g,'&quot;'); }
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeAllDD(); document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open')); }
+  if(document.getElementById('rehearseOverlay').classList.contains('open')){
+    if(e.key==='ArrowRight') rehearseStep(1); if(e.key==='ArrowLeft') rehearseStep(-1);
+    if(e.key===' '){ e.preventDefault(); revealAnswer(); } } });
+
+/* ---------------- Sample ---------------- */
+function loadSample(){
+  const p={ id:uid(), name:"My Home — Grocery List", description:"Walk from the front gate through the house. A classic starter route.",
+    createdAt:nowISO(), updatedAt:nowISO(), loci:[
+      {id:uid(),location:"Front gate",item:"Bananas",imageNote:"A bunch of giant bananas swinging the gate open"},
+      {id:uid(),location:"Front door",item:"Milk",imageNote:"Milk flooding out under the door"},
+      {id:uid(),location:"Hallway mirror",item:"Eggs",imageNote:"Your reflection juggling a dozen eggs"},
+      {id:uid(),location:"Kitchen sink",item:"Coffee",imageNote:"Coffee erupting like a fountain from the tap"},
+      {id:uid(),location:"Sofa",item:"Bread",imageNote:"A loaf of bread lounging with the remote"}
+    ]};
+  state.palaces.unshift(p); currentId=p.id; save(); renderAll(); toast('Sample palace added');
+}
+
+/* ---------------- Boot ---------------- */
+load();
+currentId = state.palaces[0] ? state.palaces[0].id : null;
+renderAll();
+</script>
+</body>
+</html>

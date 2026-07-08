@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POA / Dominic System Trainer</title>
+<style>
+  :root{
+    --accent:#6366f1; --accent2:#8b5cf6; --ok:#16a34a; --bad:#dc2626;
+    --ink:#1e1b2e; --muted:#6b7280; --line:#e5e7eb; --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink); background:linear-gradient(160deg,#f5f3ff 0%,#eef2ff 45%,#fdf4ff 100%);
+    min-height:100vh; line-height:1.55;
+  }
+  .wrap{max-width:820px; margin:0 auto; padding:28px 18px 60px;}
+  header h1{font-size:1.7rem; margin:0 0 4px; letter-spacing:-.4px;}
+  header p{margin:0; color:var(--muted); font-size:.96rem;}
+  .tabs{display:flex; gap:8px; margin:22px 0 18px;}
+  .tab{
+    flex:1; padding:11px 10px; border:1px solid var(--line); background:#fff; border-radius:12px;
+    font-weight:600; font-size:.95rem; cursor:pointer; color:var(--muted); transition:.15s;
+  }
+  .tab.active{background:var(--accent); color:#fff; border-color:var(--accent); box-shadow:0 6px 18px rgba(99,102,241,.28);}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 1px 2px rgba(0,0,0,.03); margin-bottom:16px;}
+  h2{font-size:1.15rem; margin:0 0 10px;}
+  h3{font-size:1rem; margin:18px 0 6px;}
+  p{margin:8px 0;}
+  .hidden{display:none !important;}
+  table{width:100%; border-collapse:collapse; margin:10px 0; font-size:.95rem;}
+  th,td{border:1px solid var(--line); padding:7px 9px; text-align:left;}
+  th{background:#f8f7ff;}
+  td.big{font-weight:700; text-align:center; font-size:1.05rem; color:var(--accent);}
+  .pill{display:inline-block; background:#f1f0ff; color:var(--accent); border-radius:999px; padding:2px 10px; font-weight:600; font-size:.85rem;}
+  .example{background:#faf9ff; border:1px dashed #d6d3f0; border-radius:12px; padding:14px 16px; margin-top:10px;}
+  .scene{font-style:italic; color:#4338ca;}
+  /* Drill */
+  .modebar{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+  .mode{padding:8px 12px; border:1px solid var(--line); background:#fff; border-radius:999px; font-size:.86rem; font-weight:600; color:var(--muted); cursor:pointer;}
+  .mode.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .q{font-size:1.45rem; text-align:center; margin:16px 0 6px; min-height:42px;}
+  .sub{text-align:center; color:var(--muted); font-size:.9rem; margin-bottom:18px;}
+  .row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+  input[type=text]{
+    font-size:1.25rem; padding:10px 14px; border:2px solid var(--line); border-radius:12px; width:200px;
+    text-align:center; text-transform:uppercase; letter-spacing:2px; outline:none;
+  }
+  input[type=text]:focus{border-color:var(--accent);}
+  button.btn{
+    font-size:1rem; font-weight:700; padding:11px 20px; border:none; border-radius:12px; cursor:pointer;
+    background:var(--accent); color:#fff; transition:.15s;
+  }
+  button.btn:hover{background:#4f46e5;}
+  button.btn.ghost{background:#fff; color:var(--ink); border:1.5px solid var(--line);}
+  button.btn.good{background:var(--ok);}
+  button.btn.bad{background:var(--bad);}
+  .feedback{text-align:center; font-weight:700; min-height:26px; margin:16px 0 4px; font-size:1.05rem;}
+  .feedback.ok{color:var(--ok);} .feedback.no{color:var(--bad);}
+  .reveal{text-align:center; background:#faf9ff; border-radius:12px; padding:12px; margin-top:10px;}
+  .stats{display:flex; gap:10px; justify-content:center; margin-top:22px; flex-wrap:wrap;}
+  .stat{background:#f8f7ff; border-radius:12px; padding:10px 16px; text-align:center; min-width:84px;}
+  .stat b{display:block; font-size:1.4rem; color:var(--accent);}
+  .stat span{font-size:.78rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px;}
+  .ref{margin-top:6px; font-size:.9rem;}
+  .ref summary{cursor:pointer; font-weight:600; color:var(--accent);}
+  .codegrid{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+  .codegrid span{background:#f1f0ff; border-radius:8px; padding:5px 9px; font-size:.85rem; font-weight:600;}
+  footer{text-align:center; color:var(--muted); font-size:.82rem; margin-top:24px;}
+  kbd{background:#eee; border-radius:5px; padding:1px 6px; font-size:.8rem; border:1px solid #ddd;}
+</style>
+</head>
+<body>
+<a href="index.html" style="position:fixed;bottom:14px;left:14px;z-index:99999;background:#4f46e5;color:#fff;text-decoration:none;padding:10px 16px;border-radius:999px;font-family:sans-serif;font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.35)">🏠 All Quizzes</a>
+<div class="wrap">
+  <header>
+    <h1>🧠 POA / Dominic System Trainer</h1>
+    <p>Learn Dominic O'Brien's method for memorising numbers — turn digits into People, Objects &amp; Actions.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-learn" onclick="showTab('learn')">📖 Learn the basics</button>
+    <button class="tab" id="tab-drill" onclick="showTab('drill')">🎯 Drill</button>
+  </div>
+
+  <!-- ================= LEARN ================= -->
+  <section id="learn">
+    <div class="card">
+      <h2>The big idea</h2>
+      <p>Numbers are hard to remember because they're abstract. The <b>Dominic System</b> fixes this by turning every
+      pair of digits (<span class="pill">00</span>–<span class="pill">99</span>) into a memorable <b>person</b>, and then
+      into a tiny <b>scene</b>. People doing things stick in memory far better than bare digits.</p>
+      <p><b>POA</b> = <b>P</b>erson · <b>O</b>bject · <b>A</b>ction. Each two-digit number gets all three, so a single
+      vivid mental image can lock in six digits at once.</p>
+    </div>
+
+    <div class="card">
+      <h2>Step 1 — The letter code</h2>
+      <p>Each digit becomes a letter. Memorise these ten — it's the whole foundation:</p>
+      <table>
+        <tr><th>Digit</th><th>Letter</th><th>Why it's easy to remember</th></tr>
+        <tr><td class="big">1</td><td class="big">A</td><td>1st letter of the alphabet</td></tr>
+        <tr><td class="big">2</td><td class="big">B</td><td>2nd letter</td></tr>
+        <tr><td class="big">3</td><td class="big">C</td><td>3rd letter</td></tr>
+        <tr><td class="big">4</td><td class="big">D</td><td>4th letter</td></tr>
+        <tr><td class="big">5</td><td class="big">E</td><td>5th letter</td></tr>
+        <tr><td class="big">6</td><td class="big">S</td><td>"<b>S</b>ix" begins with S</td></tr>
+        <tr><td class="big">7</td><td class="big">G</td><td>G is the 7th letter (A B C D E F <b>G</b>)</td></tr>
+        <tr><td class="big">8</td><td class="big">H</td><td>H is the 8th letter (…F G <b>H</b>)</td></tr>
+        <tr><td class="big">9</td><td class="big">N</td><td>"<b>N</b>ine" begins with N</td></tr>
+        <tr><td class="big">0</td><td class="big">O</td><td>0 looks like the letter O</td></tr>
+      </table>
+      <p class="sub">Tip: 1–5 are just A–E in order. Only 6, 9 (sounds) and 7, 8, 0 (shapes/positions) need a little extra.</p>
+    </div>
+
+    <div class="card">
+      <h2>Step 2 — From a number to a person</h2>
+      <p>Convert each digit to its letter, read the two letters as <b>initials</b>, then picture a real person with
+      those initials.</p>
+      <div class="example">
+        <p><b>27</b> &rarr; 2=<b>B</b>, 7=<b>G</b> &rarr; initials <b>B.G.</b> &rarr; <b>Bill Gates</b></p>
+        <p><b>15</b> &rarr; 1=<b>A</b>, 5=<b>E</b> &rarr; initials <b>A.E.</b> &rarr; <b>Albert Einstein</b></p>
+        <p><b>33</b> &rarr; 3=<b>C</b>, 3=<b>C</b> &rarr; initials <b>C.C.</b> &rarr; <b>Charlie Chaplin</b></p>
+      </div>
+      <p class="sub">Your list is personal — pick whoever <i>you</i> picture fastest (friends, athletes, characters all work).</p>
+    </div>
+
+    <div class="card">
+      <h2>Step 3 — Add an Object &amp; an Action (POA)</h2>
+      <p>Give each person a signature <b>object</b> they hold and a signature <b>action</b> they do. For example
+      Einstein (15) &rarr; object: chalkboard, action: scribbling equations.</p>
+      <p>To memorise a longer number, break it into pairs and build <b>one scene</b> using the <b>Person</b> of the first
+      pair, the <b>Object</b> of the second, and the <b>Action</b> of the third:</p>
+      <div class="example">
+        <p>Number <b>271533</b> &rarr; pairs <b>27 · 15 · 33</b></p>
+        <p>27 &rarr; <b>Bill Gates</b> &nbsp;(the Person)</p>
+        <p>15 &rarr; Einstein's <b>chalkboard</b> &nbsp;(the Object)</p>
+        <p>33 &rarr; Chaplin's <b>cane-twirl</b> &nbsp;(the Action)</p>
+        <p class="scene">&rarr; Picture: "Bill Gates twirling a cane in front of a giant chalkboard." That one image = <b>271533</b>.</p>
+      </div>
+      <p class="sub">Just starting out? Skip the compression at first — turn each pair into a person and chain them into a
+      little story. Add Objects &amp; Actions once the people come quickly.</p>
+    </div>
+
+    <div class="card">
+      <p style="text-align:center; margin:6px 0;">Ready? <button class="btn" onclick="showTab('drill')">Start drilling →</button></p>
+    </div>
+  </section>
+
+  <!-- ================= DRILL ================= -->
+  <section id="drill" class="hidden">
+    <div class="card">
+      <div class="modebar">
+        <button class="mode active" data-mode="code"     onclick="setMode('code')">Letter code</button>
+        <button class="mode"        data-mode="initials" onclick="setMode('initials')">Number → letters</button>
+        <button class="mode"        data-mode="person"   onclick="setMode('person')">Recall your person</button>
+        <button class="mode"        data-mode="chunk"    onclick="setMode('chunk')">Chunk a long number</button>
+      </div>
+
+      <div class="q" id="q"></div>
+      <div class="sub" id="qsub"></div>
+
+      <!-- typed-answer modes -->
+      <div id="typeArea">
+        <div class="row">
+          <input type="text" id="ans" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="type here">
+          <button class="btn" id="checkBtn" onclick="checkTyped()">Check</button>
+        </div>
+      </div>
+
+      <!-- self-graded mode -->
+      <div id="selfArea" class="hidden">
+        <div class="row"><button class="btn ghost" onclick="revealPerson()">Reveal a suggestion</button></div>
+        <div class="reveal hidden" id="revealBox"></div>
+        <div class="row hidden" id="gradeRow" style="margin-top:12px;">
+          <button class="btn good" onclick="selfGrade(true)">✓ I knew it</button>
+          <button class="btn bad" onclick="selfGrade(false)">✗ Missed it</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="row"><button class="btn ghost hidden" id="nextBtn" onclick="newQuestion()">Next →</button></div>
+
+      <div class="stats">
+        <div class="stat"><b id="sCorrect">0</b><span>Correct</span></div>
+        <div class="stat"><b id="sAttempts">0</b><span>Tries</span></div>
+        <div class="stat"><b id="sAcc">—</b><span>Accuracy</span></div>
+        <div class="stat"><b id="sStreak">0</b><span>Streak</span></div>
+        <div class="stat"><b id="sBest">0</b><span>Best</span></div>
+      </div>
+
+      <details class="ref" id="refBox">
+        <summary>Show the letter code</summary>
+        <div class="codegrid">
+          <span>1=A</span><span>2=B</span><span>3=C</span><span>4=D</span><span>5=E</span>
+          <span>6=S</span><span>7=G</span><span>8=H</span><span>9=N</span><span>0=O</span>
+        </div>
+      </details>
+    </div>
+    <footer>Press <kbd>Enter</kbd> to check or move on. Your stats reset when you reload.</footer>
+  </section>
+</div>
+
+<script>
+/* ---------- core data ---------- */
+const CODE = {0:'O',1:'A',2:'B',3:'C',4:'D',5:'E',6:'S',7:'G',8:'H',9:'N'};
+const pad = n => String(n).padStart(2,'0');
+function lettersFor(n){ const s = pad(n); return CODE[+s[0]] + CODE[+s[1]]; }
+function dotted(n){ const l = lettersFor(n); return l[0]+'.'+l[1]+'.'; }
+
+const SUGGEST = {
+  0:'Ozzy Osbourne', 2:'Orlando Bloom', 11:'Andre Agassi', 12:'Antonio Banderas',
+  13:'Anderson Cooper', 14:'Adam Driver', 15:'Albert Einstein', 16:'Arnold Schwarzenegger',
+  17:'Al Gore', 18:'Anthony Hopkins', 20:'Barack Obama', 21:'Ben Affleck',
+  22:'Brigitte Bardot', 23:'Bill Clinton', 25:'Billie Eilish', 26:'Bernie Sanders',
+  27:'Bill Gates', 30:"Conan O'Brien", 31:'Christina Aguilera', 33:'Charlie Chaplin',
+  34:'Celine Dion', 35:'Clint Eastwood', 39:'Chuck Norris', 42:'David Beckham',
+  63:'Sean Connery', 66:'Steven Spielberg', 88:'Hulk Hogan', 93:'Nicolas Cage'
+};
+function suggestionFor(n){
+  if (SUGGEST[n]) return '<b>'+SUGGEST[n]+'</b> &nbsp;<span style="color:#6b7280">('+dotted(n)+')</span>';
+  return 'No preset here — picture anyone with the initials <b>'+dotted(n)+'</b> (a friend, athlete, actor or character).';
+}
+
+/* ---------- state ---------- */
+let mode = 'code';
+let cur = null;            // current question
+let answered = false;
+let stats = {correct:0, attempts:0, streak:0, best:0};
+const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+
+/* ---------- tabs ---------- */
+function showTab(t){
+  document.getElementById('learn').classList.toggle('hidden', t!=='learn');
+  document.getElementById('drill').classList.toggle('hidden', t!=='drill');
+  document.getElementById('tab-learn').classList.toggle('active', t==='learn');
+  document.getElementById('tab-drill').classList.toggle('active', t==='drill');
+  if (t==='drill' && !cur) newQuestion();
+}
+
+/* ---------- mode ---------- */
+function setMode(m){
+  mode = m;
+  document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active', b.dataset.mode===m));
+  newQuestion();
+}
+
+/* ---------- question generation ---------- */
+function newQuestion(){
+  answered = false;
+  const fb = document.getElementById('feedback'); fb.textContent=''; fb.className='feedback';
+  document.getElementById('nextBtn').classList.add('hidden');
+  document.getElementById('revealBox').classList.add('hidden');
+  document.getElementById('gradeRow').classList.add('hidden');
+  const typeArea = document.getElementById('typeArea');
+  const selfArea = document.getElementById('selfArea');
+  const inp = document.getElementById('ans');
+  inp.value=''; inp.disabled=false;
+
+  if (mode==='person'){
+    typeArea.classList.add('hidden'); selfArea.classList.remove('hidden');
+    const n = rand(0,99);
+    cur = {n:n};
+    document.getElementById('q').innerHTML = 'Who is YOUR person for <b>'+pad(n)+'</b>?';
+    document.getElementById('qsub').innerHTML = 'initials '+dotted(n)+' — picture them, then reveal a suggestion';
+  } else {
+    typeArea.classList.remove('hidden'); selfArea.classList.add('hidden');
+    if (mode==='code'){
+      const d = rand(0,9);
+      cur = {answer: CODE[d]};
+      document.getElementById('q').innerHTML = 'Which letter stands for the digit <b>'+d+'</b>?';
+      document.getElementById('qsub').textContent = 'type one letter';
+    } else if (mode==='initials'){
+      const n = rand(0,99);
+      cur = {answer: lettersFor(n)};
+      document.getElementById('q').innerHTML = 'Give the two letters for <b>'+pad(n)+'</b>';
+      document.getElementById('qsub').textContent = 'two letters, e.g. BG';
+    } else if (mode==='chunk'){
+      let digits=''; for(let i=0;i<6;i++) digits+=rand(0,9);
+      const p1=+digits.slice(0,2), p2=+digits.slice(2,4), p3=+digits.slice(4,6);
+      cur = {answer: lettersFor(p1)+lettersFor(p2)+lettersFor(p3),
+             pretty: pad(p1)+' '+pad(p2)+' '+pad(p3),
+             letters: lettersFor(p1)+' '+lettersFor(p2)+' '+lettersFor(p3)};
+      document.getElementById('q').innerHTML = 'Break <b>'+digits+'</b> into pairs &amp; give all the letters';
+      document.getElementById('qsub').textContent = 'e.g. BG AE CC (spaces optional)';
+    }
+    setTimeout(()=>inp.focus(),30);
+  }
+}
+
+/* ---------- checking ---------- */
+const norm = s => (s||'').toUpperCase().replace(/[^A-Z]/g,'');
+
+function checkTyped(){
+  if (answered){ newQuestion(); return; }
+  const val = document.getElementById('ans').value;
+  if (!norm(val)) return;
+  const correct = norm(val)===norm(cur.answer);
+  record(correct);
+  const fb = document.getElementById('feedback');
+  if (correct){
+    fb.textContent = '✓ Correct!'; fb.className='feedback ok';
+  } else {
+    let msg = '✗ Answer: '+cur.answer;
+    if (mode==='chunk') msg = '✗ '+cur.pretty+'  →  '+cur.letters;
+    fb.textContent = msg; fb.className='feedback no';
+  }
+  document.getElementById('ans').disabled = true;
+  finishTurn();
+}
+
+function revealPerson(){
+  const box = document.getElementById('revealBox');
+  box.innerHTML = suggestionFor(cur.n);
+  box.classList.remove('hidden');
+  document.getElementById('gradeRow').classList.remove('hidden');
+}
+function selfGrade(knew){
+  if (answered) return;
+  record(knew);
+  const fb = document.getElementById('feedback');
+  fb.textContent = knew ? '✓ Nice — locked in.' : '✗ Review this one.';
+  fb.className = 'feedback ' + (knew?'ok':'no');
+  document.getElementById('gradeRow').classList.add('hidden');
+  finishTurn();
+}
+
+function record(correct){
+  answered = true;
+  stats.attempts++;
+  if (correct){ stats.correct++; stats.streak++; stats.best=Math.max(stats.best,stats.streak); }
+  else { stats.streak=0; }
+  renderStats();
+}
+function finishTurn(){
+  document.getElementById('nextBtn').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('nextBtn').focus(),30);
+}
+function renderStats(){
+  document.getElementById('sCorrect').textContent = stats.correct;
+  document.getElementById('sAttempts').textContent = stats.attempts;
+  document.getElementById('sStreak').textContent = stats.streak;
+  document.getElementById('sBest').textContent = stats.best;
+  document.getElementById('sAcc').textContent = stats.attempts ? Math.round(100*stats.correct/stats.attempts)+'%' : '—';
+}
+
+/* ---------- keyboard ---------- */
+document.addEventListener('keydown', e=>{
+  if (e.key!=='Enter') return;
+  if (document.getElementById('drill').classList.contains('hidden')) return;
+  if (mode==='person'){
+    if (!answered && !document.getElementById('gradeRow').classList.contains('hidden')) return;
+    if (answered) newQuestion();
+  } else {
+    checkTyped();
+  }
+});
+
+/* init */
+renderStats();
+</script>
+</body>
+</html>

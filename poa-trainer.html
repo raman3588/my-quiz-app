@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My POA / Dominic Trainer</title>
+<style>
+  :root{--accent:#6366f1;--accent2:#8b5cf6;--ok:#16a34a;--bad:#dc2626;--ink:#1e1b2e;--muted:#6b7280;--line:#e5e7eb;--card:#fff;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:linear-gradient(160deg,#f5f3ff 0%,#eef2ff 45%,#fdf4ff 100%);min-height:100vh;line-height:1.5;}
+  .wrap{max-width:900px;margin:0 auto;padding:24px 16px 70px;}
+  header h1{font-size:1.6rem;margin:0 0 3px;letter-spacing:-.4px;}
+  header p{margin:0;color:var(--muted);font-size:.93rem;}
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;}
+  .tab{flex:1;padding:11px 8px;border:1px solid var(--line);background:#fff;border-radius:12px;font-weight:600;font-size:.92rem;cursor:pointer;color:var(--muted);transition:.15s;}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 6px 18px rgba(99,102,241,.28);}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.03);margin-bottom:16px;}
+  .hidden{display:none !important;}
+  h2{font-size:1.1rem;margin:0 0 8px;}
+  .muted{color:var(--muted);}
+  img.ph{background:#eef;display:block;}
+  /* Study */
+  .searchrow{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .searchrow input{flex:1;min-width:180px;font-size:1rem;padding:10px 14px;border:2px solid var(--line);border-radius:12px;outline:none;}
+  .searchrow input:focus{border-color:var(--accent);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+  .peg{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;position:relative;}
+  .peg img.photo{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;margin-bottom:8px;}
+  .peg .num{position:absolute;top:16px;right:16px;background:rgba(30,27,46,.82);color:#fff;font-weight:800;font-size:1rem;letter-spacing:1px;padding:2px 8px;border-radius:8px;}
+  .peg .ini{position:absolute;top:16px;left:16px;background:rgba(255,255,255,.9);color:var(--accent);font-size:.72rem;font-weight:800;letter-spacing:1px;padding:2px 7px;border-radius:8px;}
+  .peg .p{font-weight:700;margin:2px 0 4px;}
+  .peg .a{font-style:italic;color:#4338ca;font-size:.9rem;}
+  .peg .o{font-size:.9rem;}
+  .peg .lbl{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;}
+  .count{font-size:.85rem;color:var(--muted);margin-bottom:8px;}
+  /* Drill */
+  .modebar,.rangebar{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;}
+  .chip{padding:7px 12px;border:1px solid var(--line);background:#fff;border-radius:999px;font-size:.83rem;font-weight:600;color:var(--muted);cursor:pointer;}
+  .chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .chip.r.active{background:var(--accent2);border-color:var(--accent2);}
+  .q{font-size:1.5rem;text-align:center;margin:14px 0 4px;min-height:36px;}
+  .sub{text-align:center;color:var(--muted);font-size:.88rem;margin-bottom:14px;}
+  .hero{width:150px;height:150px;object-fit:cover;border-radius:16px;margin:0 auto 12px;box-shadow:0 6px 20px rgba(0,0,0,.12);}
+  .mc{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px;margin:0 auto;}
+  .opt{padding:13px 12px;border:2px solid var(--line);background:#fff;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;text-align:center;transition:.12s;}
+  .opt:hover{border-color:var(--accent);}
+  .opt.person{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 8px;}
+  .opt.person img{width:88px;height:88px;object-fit:cover;border-radius:12px;}
+  .opt.num{font-size:1.6rem;letter-spacing:2px;}
+  .opt.correct{background:#dcfce7;border-color:var(--ok);color:#065f46;}
+  .opt.wrong{background:#fee2e2;border-color:var(--bad);color:#7f1d1d;}
+  .opt.dim{opacity:.45;}
+  .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px;}
+  input.typ{font-size:1.3rem;padding:10px 14px;border:2px solid var(--line);border-radius:12px;width:160px;text-align:center;letter-spacing:3px;outline:none;text-transform:uppercase;}
+  input.typ:focus{border-color:var(--accent);}
+  .btn{font-size:1rem;font-weight:700;padding:11px 20px;border:none;border-radius:12px;cursor:pointer;background:var(--accent);color:#fff;transition:.15s;}
+  .btn:hover{background:#4f46e5;}
+  .btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);}
+  .btn.good{background:var(--ok);}.btn.bad{background:var(--bad);}
+  .flash{max-width:460px;margin:0 auto;text-align:center;}
+  .flash .reveal{background:#faf9ff;border:1px solid var(--line);border-radius:12px;padding:14px;margin:8px 0;}
+  .flash .reveal .p{font-weight:800;font-size:1.15rem;}
+  .flash .reveal .a{font-style:italic;color:#4338ca;}
+  .feedback{text-align:center;font-weight:700;min-height:24px;margin:14px 0 2px;font-size:1.02rem;}
+  .feedback.ok{color:var(--ok);}.feedback.no{color:var(--bad);}
+  .stats{display:flex;gap:9px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+  .stat{background:#f8f7ff;border-radius:12px;padding:9px 15px;text-align:center;min-width:76px;}
+  .stat b{display:block;font-size:1.3rem;color:var(--accent);}
+  .stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  /* Memorise */
+  .lenbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+  .bignum{font-size:1.9rem;text-align:center;letter-spacing:5px;font-weight:800;margin:14px 0;color:var(--ink);word-break:break-all;}
+  .scene{background:#faf9ff;border:1px solid #e5e1f7;border-radius:12px;padding:12px;margin:9px 0;display:flex;gap:12px;align-items:center;}
+  .scene img{width:78px;height:78px;object-fit:cover;border-radius:10px;flex:none;}
+  .scene .pairs{font-weight:800;color:var(--accent2);letter-spacing:2px;font-size:.95rem;}
+  .scene .story{margin-top:4px;font-size:1.02rem;}
+  .scene .story b{color:var(--ink);}.scene .story i{color:#4338ca;}
+  .scene .src{font-size:.75rem;color:var(--muted);margin-top:3px;}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;margin-top:22px;}
+  .note{font-size:.85rem;color:var(--muted);background:#f8f7ff;border-radius:10px;padding:10px 12px;margin-top:10px;}
+</style>
+</head>
+<body>
+<a href="index.html" style="position:fixed;bottom:14px;left:14px;z-index:99999;background:#4f46e5;color:#fff;text-decoration:none;padding:10px 16px;border-radius:999px;font-family:sans-serif;font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.35)">🏠 All Quizzes</a>
+<div class="wrap">
+  <header>
+    <h1>🧠 My POA / Dominic Trainer</h1>
+    <p>Your personal 00–99 Person · Action · Object list with photos. Study it, drill it, memorise real numbers with it.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-study" onclick="showTab('study')">📖 Study</button>
+    <button class="tab" id="tab-drill" onclick="showTab('drill')">🎯 Drill</button>
+    <button class="tab" id="tab-mem" onclick="showTab('mem')">🔢 Memorise</button>
+  </div>
+
+  <!-- STUDY -->
+  <section id="study">
+    <div class="card">
+      <div class="searchrow">
+        <input type="text" id="search" placeholder="Search a number, person, action or object…" oninput="renderStudy()">
+        <button class="btn ghost" onclick="document.getElementById('search').value='';renderStudy()">Clear</button>
+        <button class="btn" id="offBtn" onclick="buildOffline(this)">⤓ Build offline copy</button>
+      </div>
+      <div class="count" id="offProg"></div>
+      <div class="count" id="studyCount"></div>
+      <div class="grid" id="studyGrid"></div>
+      <div class="note"><b>Want it fully offline?</b> While online, click <b>⤓ Build offline copy</b> — your browser downloads every photo and saves <b>my-poa-trainer-offline.html</b> with all pictures embedded, so it works with no internet at all. Until then, photos stream from Wikipedia and are cached after first view; anything not yet loaded shows a lettered avatar (number + initials).</div>
+    </div>
+  </section>
+
+  <!-- DRILL -->
+  <section id="drill" class="hidden">
+    <div class="card">
+      <div class="modebar">
+        <button class="chip active" data-m="np"     onclick="setMode('np')">Number → Person</button>
+        <button class="chip"        data-m="recall" onclick="setMode('recall')">Full P·A·O recall</button>
+        <button class="chip"        data-m="pn"     onclick="setMode('pn')">Person → Number</button>
+        <button class="chip"        data-m="decode" onclick="setMode('decode')">Scene → Number</button>
+      </div>
+      <div class="rangebar">
+        <button class="chip r active" data-r="0-99" onclick="setRange(0,99)">All 100</button>
+        <button class="chip r" data-r="0-24"  onclick="setRange(0,24)">00–24</button>
+        <button class="chip r" data-r="25-49" onclick="setRange(25,49)">25–49</button>
+        <button class="chip r" data-r="50-74" onclick="setRange(50,74)">50–74</button>
+        <button class="chip r" data-r="75-99" onclick="setRange(75,99)">75–99</button>
+      </div>
+
+      <div class="q" id="q"></div>
+      <div class="sub" id="qsub"></div>
+      <div id="heroWrap" class="hidden"><img id="heroImg" class="ph hero" alt=""></div>
+
+      <div id="mcArea" class="mc"></div>
+
+      <div id="flashArea" class="flash hidden">
+        <button class="btn ghost" id="revealBtn" onclick="revealFlash()">Reveal P · A · O</button>
+        <div class="reveal hidden" id="flashReveal"></div>
+        <div class="row hidden" id="gradeRow"><button class="btn good" onclick="grade(true)">✓ I knew it</button><button class="btn bad" onclick="grade(false)">✗ Missed it</button></div>
+      </div>
+
+      <div id="typeArea" class="hidden">
+        <div class="row">
+          <input type="text" class="typ" id="typed" inputmode="numeric" autocomplete="off" placeholder="00">
+          <button class="btn" id="checkBtn" onclick="checkTyped()">Check</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="row"><button class="btn ghost hidden" id="nextBtn" onclick="newQ()">Next →</button></div>
+
+      <div class="stats">
+        <div class="stat"><b id="sCorrect">0</b><span>Correct</span></div>
+        <div class="stat"><b id="sAttempts">0</b><span>Tries</span></div>
+        <div class="stat"><b id="sAcc">—</b><span>Accuracy</span></div>
+        <div class="stat"><b id="sStreak">0</b><span>Streak</span></div>
+        <div class="stat"><b id="sBest">0</b><span>Best</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEMORISE -->
+  <section id="mem" class="hidden">
+    <div class="card">
+      <h2>Memorise a number with your pegs</h2>
+      <p class="muted" style="font-size:.9rem;margin:2px 0 12px;">Each 6 digits become one scene: <b>Person</b> (1st pair) · <i>Action</i> (2nd pair) · <b>Object</b> (3rd pair). Picture each scene vividly, then test your recall.</p>
+      <div class="lenbar">
+        <button class="chip r active" data-l="6"  onclick="setLen(6)">6 digits</button>
+        <button class="chip r" data-l="8"  onclick="setLen(8)">8 digits</button>
+        <button class="chip r" data-l="12" onclick="setLen(12)">12 digits</button>
+        <button class="chip r" data-l="18" onclick="setLen(18)">18 digits</button>
+      </div>
+      <div class="row"><button class="btn" onclick="newNumber()">🎲 New number</button></div>
+
+      <div id="memBody" class="hidden">
+        <div class="bignum" id="bignum"></div>
+        <div id="scenes"></div>
+        <div class="row" style="margin-top:8px;"><button class="btn" onclick="startRecall()">Hide &amp; test my recall →</button></div>
+      </div>
+
+      <div id="recallBody" class="hidden">
+        <p class="muted" style="text-align:center;">Type the number back from memory:</p>
+        <div class="row"><input type="text" class="typ" id="recallInput" inputmode="numeric" autocomplete="off" style="width:280px;letter-spacing:2px;" placeholder="digits"></div>
+        <div class="row" style="margin-top:8px;"><button class="btn" onclick="checkRecall()">Check</button><button class="btn ghost" onclick="showNumberAgain()">Show me again</button></div>
+        <div class="feedback" id="memFeedback"></div>
+        <div id="memResult"></div>
+      </div>
+
+      <div class="note">Tip: say each scene out loud as a little story. The weirder and more exaggerated the image, the better it sticks.</div>
+    </div>
+  </section>
+
+  <footer>Your personal trainer · stats reset on reload · photos cached locally.</footer>
+</div>
+
+<script>
+/* ===== Personal POA data (Person · Action · Object) ===== */
+const PEG = {
+0:{p:"Ozzy Osbourne",a:"biting",o:"bat head"},
+1:{p:"Omar Abdullah",a:"typing",o:"computer"},
+2:{p:"Osama Bin",a:"crashes",o:"airplane"},
+3:{p:"Coldplay",a:"scratches",o:"nails"},
+4:{p:"Dharmendra",a:"standing",o:"water tank"},
+5:{p:"Omar Epps",a:"breath",o:"mask"},
+6:{p:"Steve Jobs",a:"coughs",o:"bed"},
+7:{p:"James Bond",a:"cutting up",o:"orange"},
+8:{p:"Oliver Hardy",a:"floating",o:"hat"},
+9:{p:"Owen Wilson",a:"petting",o:"dog"},
+10:{p:"Aristotle Onassis",a:"sail",o:"yacht"},
+11:{p:"Anil Ambani",a:"running through",o:"red ribbon"},
+12:{p:"Amitabh Bachchan",a:"flying punch",o:"stomach"},
+13:{p:"Arindam Chaudhary",a:"speaking",o:"students"},
+14:{p:"Ajay Devgn",a:"revving up",o:"bike"},
+15:{p:"Albert Einstein",a:"dreams",o:"blackboard"},
+16:{p:"Arnold Schwarzenegger",a:"lifting",o:"weights"},
+17:{p:"Arnab Goswami",a:"shouting",o:"mike"},
+18:{p:"Adolf Hitler",a:"marching",o:"swastika flag"},
+19:{p:"Alok Nath",a:"wearing",o:"kurta"},
+20:{p:"Barack Obama",a:"pardon",o:"turkey"},
+21:{p:"Buzz Aldrin",a:"cracks",o:"moon soil"},
+22:{p:"Benazir Bhutto",a:"halts",o:"jeep"},
+23:{p:"Bill Clinton",a:"sucked",o:"mouth"},
+24:{p:"Barkha Dutt",a:"drools",o:"notepad"},
+25:{p:"Bruce Lee",a:"cross sign",o:"bee"},
+26:{p:"Bhagat Singh",a:"throws",o:"brick"},
+27:{p:"Bill Gates",a:"levitates",o:"tablet"},
+28:{p:"Bhartendu Harishchandra",a:"writing",o:"novel"},
+29:{p:"Benjamin Netanyahu",a:"launching",o:"bombs"},
+30:{p:"Conan O'Brien",a:"getting",o:"monkey"},
+31:{p:"Captain America",a:"spinning",o:"shield"},
+32:{p:"Christian Bale",a:"shooting",o:"stars"},
+33:{p:"Charlie Chaplin",a:"farting",o:"feather"},
+34:{p:"Charles Darwin",a:"drinks",o:"ocean"},
+35:{p:"Clint Eastwood",a:"shuffling",o:"cards"},
+36:{p:"Charlie Sheen",a:"sleeping",o:"panties & bra"},
+37:{p:"Che Guevara",a:"driving",o:"ghost rider"},
+38:{p:"Chanel Hayes",a:"hair",o:"splitting"},
+39:{p:"Christopher Nolan",a:"sitting",o:"chair"},
+40:{p:"Dominic O'Brien",a:"learning",o:"glasses"},
+41:{p:"Dhirubhai Ambani",a:"filling",o:"petrol"},
+42:{p:"Divya Bharti",a:"falling",o:"building"},
+43:{p:"Dilip Chhabria",a:"paints",o:"truck"},
+44:{p:"David Dhawan",a:"urinates",o:"road"},
+45:{p:"Dwight Eisenhower",a:"desegregate",o:"school"},
+46:{p:"Deepak Singhal",a:"clapping",o:"Audi"},
+47:{p:"Daniel Goleman",a:"teaching",o:"sticks"},
+48:{p:"Dustin Hoffman",a:"open",o:"umbrella"},
+49:{p:"Deepti Naval",a:"casted",o:"couch"},
+50:{p:"50 Cent",a:"stuck",o:"bullets"},
+51:{p:"Elizabeth Arden",a:"putting",o:"powder"},
+52:{p:"Erin Brockovich",a:"searching",o:"file"},
+53:{p:"Eric Clapton",a:"conducting",o:"orchestra"},
+54:{p:"Ellen DeGeneres",a:"dance",o:"on-stage"},
+55:{p:"Elizabeth Eckford",a:"photographed",o:"gate"},
+56:{p:"Edward Snowden",a:"stealing",o:"CDs"},
+57:{p:"Emma Goldman",a:"refused",o:"passport"},
+58:{p:"Edmund Hillary",a:"climbing",o:"mountain"},
+59:{p:"Edward Norton",a:"burping",o:"clown"},
+60:{p:"Suresh Oberoi",a:"folding",o:"hands"},
+61:{p:"Steve Austin",a:"piledriving",o:"pro-wrestler"},
+62:{p:"Subhash Bose",a:"pushing milk",o:"tube"},
+63:{p:"Sherlyn Chopra",a:"exposing",o:"ass"},
+64:{p:"Sanjay Dutt",a:"paying",o:"handcuffs"},
+65:{p:"Santa's Elf",a:"assembling",o:"toys"},
+66:{p:"Sonakshi Sinha",a:"juggling",o:"balls"},
+67:{p:"Sanjay Gandhi",a:"bulldozing",o:"mosque"},
+68:{p:"Sherlock Holmes",a:"magnifying",o:"train"},
+69:{p:"Saina Nehwal",a:"begs",o:"trophy"},
+70:{p:"George Orwell",a:"dives",o:"ship"},
+71:{p:"Giorgio Armani",a:"praying",o:"temple"},
+72:{p:"George Bush",a:"torture",o:"jail"},
+73:{p:"George Clooney",a:"bounces",o:"dice"},
+74:{p:"Gandhi",a:"bowing",o:"crown"},
+75:{p:"Jack Welch (GE)",a:"squeezes",o:"boobs"},
+76:{p:"Gabbar Singh",a:"riding",o:"horse"},
+77:{p:"Gulshan Grover",a:"hugs",o:"ATM"},
+78:{p:"Gene Hackman",a:"grabs",o:"collar"},
+79:{p:"Greg Norman",a:"swing",o:"golf stick"},
+80:{p:"Santa Claus",a:"sliding",o:"red bag"},
+81:{p:"Hamid Ansari",a:"talking",o:"newspaper"},
+82:{p:"Harsha Bhogle",a:"taped",o:"wig"},
+83:{p:"Hillary Clinton",a:"cry",o:"carpet"},
+84:{p:"Harley Davidson",a:"selling",o:"t-shirts"},
+85:{p:"Hercules",a:"bends",o:"sword"},
+86:{p:"Harish Singhal",a:"signs",o:"papers"},
+87:{p:"Hugh Grant",a:"drops",o:"towel"},
+88:{p:"Hulk Hogan",a:"sawing",o:"yellow Hummer"},
+89:{p:"Henry Nestle",a:"cooking",o:"Maggi"},
+90:{p:"Noah (biblical)",a:"building",o:"ark"},
+91:{p:"Neil Armstrong",a:"arm-wrestling",o:"space boots"},
+92:{p:"Napoleon Bonaparte",a:"washing",o:"dog bone"},
+93:{p:"Nicolas Cage",a:"ripping",o:"Face/Off"},
+94:{p:"N.D. Gupta",a:"debating",o:"parliament"},
+95:{p:"Noel Edmonds",a:"pointing",o:"LCD"},
+96:{p:"Naseeruddin Shah",a:"transporting",o:"paan"},
+97:{p:"Neena Gupta",a:"smashing",o:"cup"},
+98:{p:"Nikki Haley",a:"waves",o:"terrace"},
+99:{p:"Nandan Nilekani",a:"print",o:"ID"}
+};
+
+/* Wikipedia article titles where they differ from the display name */
+const WIKI = {
+ 2:"Osama bin Laden", 7:"James Bond", 13:"Arindam Chaudhuri", 22:"Benazir Bhutto",
+ 28:"Bharatendu Harishchandra", 40:"Dominic O'Brien (mnemonist)", 45:"Dwight D. Eisenhower",
+ 52:"Erin Brockovich", 61:"Stone Cold Steve Austin", 62:"Subhas Chandra Bose",
+ 72:"George W. Bush", 74:"Mahatma Gandhi", 75:"Jack Welch", 84:"Harley-Davidson",
+ 89:"Henri Nestlé", 90:"Noah"
+};
+/* Pegs with no reliable public photo -> always use lettered avatar */
+const NOPHOTO = new Set([38,46,65,86,94]);
+
+/* ===== helpers ===== */
+const CODE={0:'O',1:'A',2:'B',3:'C',4:'D',5:'E',6:'S',7:'G',8:'H',9:'N'};
+const pad=n=>String(n).padStart(2,'0');
+const letters=n=>CODE[+pad(n)[0]]+CODE[+pad(n)[1]];
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function titleFor(n){return NOPHOTO.has(n)?null:(WIKI[n]||PEG[n].p);}
+
+/* ===== photos ===== */
+const EMBED = /*__EMBED__*/{};                 /* gets filled in when you build the offline copy */
+const OFFLINE_BUILD = Object.keys(EMBED).length>0;
+const photoCache={};
+function avatar(n){
+  const hue=(n*47)%360;
+  const svg="<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'>"+
+    "<rect width='150' height='150' fill='hsl("+hue+",52%,84%)'/>"+
+    "<text x='75' y='70' font-size='46' font-weight='700' text-anchor='middle' fill='hsl("+hue+",55%,32%)' font-family='sans-serif'>"+letters(n)+"</text>"+
+    "<text x='75' y='112' font-size='34' font-weight='700' text-anchor='middle' fill='hsl("+hue+",45%,42%)' font-family='sans-serif'>"+pad(n)+"</text></svg>";
+  return "data:image/svg+xml;utf8,"+encodeURIComponent(svg);
+}
+function apiURL(n){const t=titleFor(n);return t?("https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&piprop=thumbnail&pithumbsize=320&redirects=1&titles="+encodeURIComponent(t)+"&origin=*"):null;}
+let queue=[],active=0;
+function pump(){while(active<6&&queue.length){const fn=queue.shift();active++;fn().finally(()=>{active--;pump();});}}
+function cachedURL(n){
+  if(EMBED[n])return EMBED[n];
+  if(photoCache[n])return photoCache[n];
+  try{const c=localStorage.getItem('poa_ph_'+n);if(c){photoCache[n]=c;return c;}}catch(e){}
+  return null;
+}
+function fetchPhotoURL(n){
+  return new Promise(resolve=>{
+    const u=apiURL(n); if(!u){resolve(null);return;}
+    queue.push(()=>fetch(u).then(r=>r.json()).then(d=>{
+      const pages=d&&d.query&&d.query.pages; const first=pages&&Object.values(pages)[0];
+      const src=first&&first.thumbnail&&first.thumbnail.source;
+      if(src){photoCache[n]=src;try{localStorage.setItem('poa_ph_'+n,src);}catch(e){}}
+      resolve(src||null);
+    }).catch(()=>resolve(null)));
+    pump();
+  });
+}
+function loadPhoto(n,img){
+  const c=cachedURL(n);
+  if(c){img.src=c;return;}
+  img.src=avatar(n);
+  if(OFFLINE_BUILD||NOPHOTO.has(n))return;
+  img._peg=n;
+  fetchPhotoURL(n).then(src=>{if(src&&img._peg===n)img.src=src;});
+}
+function hydrate(root){root.querySelectorAll('img.ph[data-peg]').forEach(im=>loadPhoto(+im.dataset.peg,im));}
+
+/* ===== build a fully-offline copy with every photo embedded ===== */
+function imgToDataURICanvas(url){return new Promise(res=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>{try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;c.getContext('2d').drawImage(im,0,0);res(c.toDataURL('image/jpeg',0.85));}catch(e){res(null);}};im.onerror=()=>res(null);im.src=url;});}
+async function urlToDataURI(url){
+  if(url.indexOf('data:')===0)return url;
+  try{const r=await fetch(url,{mode:'cors'});const b=await r.blob();
+    const d=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=()=>res(null);fr.readAsDataURL(b);});
+    if(d)return d;
+  }catch(e){}
+  return await imgToDataURICanvas(url);
+}
+async function buildOffline(btn){
+  const prog=document.getElementById('offProg');
+  btn.disabled=true;
+  const targets=[];for(let n=0;n<100;n++)if(!NOPHOTO.has(n))targets.push(n);
+  const map={};let done=0,ok=0;
+  for(const n of targets){
+    prog.textContent='Downloading photos… '+(++done)+'/'+targets.length+'  ('+ok+' saved)';
+    let url=cachedURL(n); if(!url) url=await fetchPhotoURL(n);
+    if(url){const di=await urlToDataURI(url); if(di){map[n]=di;ok++;}}
+  }
+  prog.textContent='Packaging file…';
+  const marker='/*__EMB'+'ED__*/{}';
+  let html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+  html=html.replace(marker,JSON.stringify(map));
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-poa-trainer-offline.html';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+  prog.textContent='✓ Saved my-poa-trainer-offline.html — '+ok+' of '+targets.length+' photos embedded. That file needs no internet.';
+  btn.disabled=false;
+}
+
+/* ===== tabs ===== */
+function showTab(t){
+  ['study','drill','mem'].forEach(x=>{
+    document.getElementById(x).classList.toggle('hidden',x!==t);
+    document.getElementById('tab-'+x).classList.toggle('active',x===t);
+  });
+  if(t==='study') renderStudy();
+  if(t==='drill'&&!cur) newQ();
+}
+
+/* ===== STUDY ===== */
+function renderStudy(){
+  const term=(document.getElementById('search').value||'').toLowerCase().trim();
+  const grid=document.getElementById('studyGrid');
+  let html='',shown=0;
+  for(let n=0;n<100;n++){
+    const g=PEG[n];
+    const hay=(pad(n)+' '+letters(n)+' '+g.p+' '+g.a+' '+g.o).toLowerCase();
+    if(term&&!hay.includes(term)) continue;
+    shown++;
+    html+='<div class="peg"><img class="ph photo" data-peg="'+n+'" alt="'+esc(g.p)+'">'+
+          '<div class="num">'+pad(n)+'</div><div class="ini">'+letters(n)+'</div>'+
+          '<div class="p">'+esc(g.p)+'</div>'+
+          '<div class="a"><span class="lbl">does</span> '+esc(g.a)+'</div>'+
+          '<div class="o"><span class="lbl">with</span> '+esc(g.o)+'</div></div>';
+  }
+  grid.innerHTML=html||'<p class="muted">No pegs match that search.</p>';
+  document.getElementById('studyCount').textContent=shown+' of 100 pegs';
+  hydrate(grid);
+}
+
+/* ===== DRILL ===== */
+let mode='np',lo=0,hi=99,cur=null,answered=false;
+let stats={correct:0,attempts:0,streak:0,best:0};
+function setMode(m){mode=m;document.querySelectorAll('.chip[data-m]').forEach(b=>b.classList.toggle('active',b.dataset.m===m));newQ();}
+function setRange(a,b){lo=a;hi=b;document.querySelectorAll('.chip.r[data-r]').forEach(x=>x.classList.toggle('active',x.dataset.r===a+'-'+b));newQ();}
+function pickNums(excl,count){const pool=[];for(let n=lo;n<=hi;n++)if(n!==excl)pool.push(n);shuffle(pool);return pool.slice(0,count);}
+
+function newQ(){
+  answered=false;
+  const fb=document.getElementById('feedback');fb.textContent='';fb.className='feedback';
+  document.getElementById('nextBtn').classList.add('hidden');
+  const mc=document.getElementById('mcArea'),flash=document.getElementById('flashArea'),type=document.getElementById('typeArea'),hero=document.getElementById('heroWrap');
+  mc.classList.add('hidden');flash.classList.add('hidden');type.classList.add('hidden');hero.classList.add('hidden');
+  mc.innerHTML='';
+  document.getElementById('flashReveal').classList.add('hidden');
+  document.getElementById('gradeRow').classList.add('hidden');
+  document.getElementById('revealBtn').classList.remove('hidden');
+  const n=rand(lo,hi);cur={n};
+
+  if(mode==='np'){
+    document.getElementById('q').innerHTML='Peg <b>'+pad(n)+'</b> &nbsp;<span class="muted" style="font-size:1rem">('+letters(n)+')</span>';
+    document.getElementById('qsub').textContent='Who is your person?';
+    mc.classList.remove('hidden');
+    shuffle([n,...pickNums(n,3)]).forEach(o=>mc.appendChild(personOpt(o,o===n)));
+  } else if(mode==='pn'){
+    document.getElementById('q').innerHTML='<b>'+esc(PEG[n].p)+'</b>';
+    document.getElementById('qsub').textContent='Which number is this?';
+    hero.classList.remove('hidden');loadPhoto(n,document.getElementById('heroImg'));
+    mc.classList.remove('hidden');
+    shuffle([n,...pickNums(n,3)]).forEach(o=>{const d=numOpt(o,o===n);mc.appendChild(d);});
+  } else if(mode==='recall'){
+    document.getElementById('q').innerHTML='Peg <b>'+pad(n)+'</b> &nbsp;<span class="muted" style="font-size:1rem">('+letters(n)+')</span>';
+    document.getElementById('qsub').textContent='Recall the full Person · Action · Object';
+    flash.classList.remove('hidden');
+  } else if(mode==='decode'){
+    const g=PEG[n];
+    hero.classList.remove('hidden');loadPhoto(n,document.getElementById('heroImg'));
+    document.getElementById('q').innerHTML='<b>'+esc(g.p)+'</b> <i style="color:#4338ca">'+esc(g.a)+'</i> '+esc(g.o);
+    document.getElementById('qsub').textContent='Which 2-digit number is this scene?';
+    type.classList.remove('hidden');
+    const t=document.getElementById('typed');t.value='';t.disabled=false;setTimeout(()=>t.focus(),30);
+  }
+}
+function personOpt(n,isCorrect){
+  const d=document.createElement('div');d.className='opt person';
+  const im=document.createElement('img');im.className='ph';im.alt=PEG[n].p;d.appendChild(im);
+  const nm=document.createElement('div');nm.textContent=PEG[n].p;d.appendChild(nm);
+  loadPhoto(n,im);
+  d._correct=isCorrect;d.onclick=()=>{if(!answered)pickMC(d,isCorrect);};return d;
+}
+function numOpt(n,isCorrect){
+  const d=document.createElement('div');d.className='opt num';d.textContent=pad(n);
+  d._correct=isCorrect;d.onclick=()=>{if(!answered)pickMC(d,isCorrect);};return d;
+}
+function pickMC(el,isCorrect){
+  record(isCorrect);
+  document.querySelectorAll('#mcArea .opt').forEach(o=>{o.classList.add('dim');if(o._correct)o.classList.add('correct');});
+  el.classList.remove('dim');if(!isCorrect)el.classList.add('wrong');
+  const fb=document.getElementById('feedback');fb.textContent=isCorrect?'✓ Correct!':'✗ Right answer highlighted';fb.className='feedback '+(isCorrect?'ok':'no');
+  finish();
+}
+function revealFlash(){
+  const g=PEG[cur.n];
+  document.getElementById('heroWrap').classList.remove('hidden');
+  loadPhoto(cur.n,document.getElementById('heroImg'));
+  const box=document.getElementById('flashReveal');
+  box.innerHTML='<div class="p">'+esc(g.p)+'</div><div class="a">'+esc(g.a)+'</div><div>'+esc(g.o)+'</div>';
+  box.classList.remove('hidden');
+  document.getElementById('revealBtn').classList.add('hidden');
+  document.getElementById('gradeRow').classList.remove('hidden');
+}
+function grade(knew){if(answered)return;record(knew);const fb=document.getElementById('feedback');fb.textContent=knew?'✓ Locked in.':'✗ Review this one.';fb.className='feedback '+(knew?'ok':'no');document.getElementById('gradeRow').classList.add('hidden');finish();}
+function checkTyped(){
+  if(answered){newQ();return;}
+  const v=(document.getElementById('typed').value||'').replace(/\D/g,'');if(v==='')return;
+  const correct=(+v)===cur.n;record(correct);
+  const fb=document.getElementById('feedback');fb.textContent=correct?'✓ Correct!':'✗ It was '+pad(cur.n)+' ('+esc(PEG[cur.n].p)+')';fb.className='feedback '+(correct?'ok':'no');
+  document.getElementById('typed').disabled=true;finish();
+}
+function record(correct){answered=true;stats.attempts++;if(correct){stats.correct++;stats.streak++;stats.best=Math.max(stats.best,stats.streak);}else stats.streak=0;renderStats();}
+function finish(){const nb=document.getElementById('nextBtn');nb.classList.remove('hidden');setTimeout(()=>nb.focus(),30);}
+function renderStats(){
+  document.getElementById('sCorrect').textContent=stats.correct;
+  document.getElementById('sAttempts').textContent=stats.attempts;
+  document.getElementById('sStreak').textContent=stats.streak;
+  document.getElementById('sBest').textContent=stats.best;
+  document.getElementById('sAcc').textContent=stats.attempts?Math.round(100*stats.correct/stats.attempts)+'%':'—';
+}
+
+/* ===== MEMORISE ===== */
+let memLen=6,memDigits='';
+function setLen(l){memLen=l;document.querySelectorAll('.chip.r[data-l]').forEach(b=>b.classList.toggle('active',+b.dataset.l===l));}
+function newNumber(){
+  let d='';for(let i=0;i<memLen;i++)d+=rand(0,9);memDigits=d;
+  document.getElementById('bignum').textContent=d.replace(/(\d{2})(?=\d)/g,'$1 ');
+  const sc=document.getElementById('scenes');sc.innerHTML=buildScenes(d);hydrate(sc);
+  document.getElementById('memBody').classList.remove('hidden');
+  document.getElementById('recallBody').classList.add('hidden');
+}
+function buildScenes(d){
+  const pairs=[];for(let i=0;i<d.length;i+=2)pairs.push(+d.slice(i,i+2));
+  let html='';
+  for(let i=0;i<pairs.length;i+=3){
+    const blk=pairs.slice(i,i+3);const P=PEG[blk[0]];
+    let story='<b>'+esc(P.p)+'</b>',src='Person '+pad(blk[0]);
+    if(blk.length>=2){story+=' <i>'+esc(PEG[blk[1]].a)+'</i>';src+=' · Action '+pad(blk[1]);}
+    if(blk.length>=3){story+=' <b>'+esc(PEG[blk[2]].o)+'</b>';src+=' · Object '+pad(blk[2]);}
+    html+='<div class="scene"><img class="ph" data-peg="'+blk[0]+'" alt="">'+
+          '<div><div class="pairs">'+blk.map(pad).join(' ')+'</div>'+
+          '<div class="story">'+story+'</div><div class="src">'+src+'</div></div></div>';
+  }
+  return html;
+}
+function startRecall(){
+  document.getElementById('memBody').classList.add('hidden');
+  document.getElementById('recallBody').classList.remove('hidden');
+  const ri=document.getElementById('recallInput');ri.value='';ri.disabled=false;
+  document.getElementById('memFeedback').textContent='';document.getElementById('memResult').innerHTML='';
+  setTimeout(()=>ri.focus(),30);
+}
+function showNumberAgain(){document.getElementById('recallBody').classList.add('hidden');document.getElementById('memBody').classList.remove('hidden');}
+function checkRecall(){
+  const v=(document.getElementById('recallInput').value||'').replace(/\D/g,'');if(v==='')return;
+  let match=0;for(let i=0;i<memDigits.length;i++)if(v[i]===memDigits[i])match++;
+  const exact=v===memDigits;
+  const fb=document.getElementById('memFeedback');fb.textContent=exact?'🎉 Perfect recall!':'✗ '+match+'/'+memDigits.length+' digits correct';fb.className='feedback '+(exact?'ok':'no');
+  let cmp='<div class="bignum" style="font-size:1.3rem">';
+  for(let i=0;i<memDigits.length;i++){const ok=v[i]===memDigits[i];cmp+='<span style="color:'+(ok?'#16a34a':'#dc2626')+'">'+memDigits[i]+'</span>';if(i%2===1)cmp+=' ';}
+  cmp+='</div>';
+  document.getElementById('memResult').innerHTML=exact?'':cmp+'<div class="muted" style="text-align:center;font-size:.85rem">(target — green digits you got right)</div>';
+  document.getElementById('recallInput').disabled=true;
+}
+
+/* ===== keyboard ===== */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  if(!document.getElementById('drill').classList.contains('hidden')){
+    if(mode==='decode')checkTyped();else if(answered)newQ();
+  } else if(!document.getElementById('mem').classList.contains('hidden')){
+    if(!document.getElementById('recallBody').classList.contains('hidden')&&!document.getElementById('recallInput').disabled)checkRecall();
+  }
+});
+
+/* init */
+renderStudy();renderStats();
+</script>
+</body>
+</html>
