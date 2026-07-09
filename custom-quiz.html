@@ -218,8 +218,42 @@ var SAMPLES = [
   { q: "What is the fastest land animal?", opts: ["Horse", "Cheetah", "Greyhound", "Kangaroo"], correct: 1 }
 ];
 
+// ---------- Supabase cloud sync ----------
+var SUPA_URL = "https://nbojunhjemqihyttaaqx.supabase.co";
+var SUPA_KEY = "sb_publishable_mv1JzEzdyjTEwES2TB9PpA_4wEXuMig";
+var SUPA_HEADERS = { "apikey": SUPA_KEY, "Authorization": "Bearer " + SUPA_KEY, "Content-Type": "application/json" };
+var cloudOnline = false;
+
+function rowToQ(r) { return { id: r.id, q: r.question, opts: [r.option_a, r.option_b, r.option_c, r.option_d], correct: r.correct }; }
+function qToRow(q) { return { question: q.q, option_a: q.opts[0], option_b: q.opts[1], option_c: q.opts[2], option_d: q.opts[3], correct: q.correct }; }
+
 var questions = load("quizQuestions", null);
-if (!questions || !questions.length) { questions = SAMPLES.slice(); store("quizQuestions", questions); }
+if (!questions || !questions.length) { questions = SAMPLES.slice(); }
+
+function syncFromCloud() {
+  fetch(SUPA_URL + "/rest/v1/quiz_questions?select=*&order=id", { headers: SUPA_HEADERS })
+    .then(function(r){ if (!r.ok) throw 0; return r.json(); })
+    .then(function(rows) {
+      cloudOnline = true;
+      if (rows.length === 0) {
+        // first time: seed the cloud with current questions
+        return fetch(SUPA_URL + "/rest/v1/quiz_questions", {
+          method: "POST", headers: SUPA_HEADERS,
+          body: JSON.stringify(questions.map(qToRow))
+        }).then(function(){ return fetch(SUPA_URL + "/rest/v1/quiz_questions?select=*&order=id", { headers: SUPA_HEADERS }); })
+          .then(function(r){ return r.json(); });
+      }
+      return rows;
+    })
+    .then(function(rows) {
+      questions = rows.map(rowToQ);
+      store("quizQuestions", questions);
+      goHome();
+      renderList();
+    })
+    .catch(function() { cloudOnline = false; });
+}
+syncFromCloud();
 
 var bestScore = load("quizBest", null);
 var playCount = load("quizPlays", 0);
@@ -333,8 +367,18 @@ function addQuestion() {
   if (!q) { toast("Please type the question"); return; }
   if (opts.some(function(o){ return !o; })) { toast("Please fill all 4 options"); return; }
   if (pickedCorrect < 0) { toast("Pick the correct option (A/B/C/D)"); return; }
-  questions.push({ q: q, opts: opts, correct: pickedCorrect });
+  var newQ = { q: q, opts: opts, correct: pickedCorrect };
+  questions.push(newQ);
   store("quizQuestions", questions);
+  if (cloudOnline) {
+    fetch(SUPA_URL + "/rest/v1/quiz_questions", {
+      method: "POST",
+      headers: Object.assign({ "Prefer": "return=representation" }, SUPA_HEADERS),
+      body: JSON.stringify([qToRow(newQ)])
+    }).then(function(r){ return r.json(); })
+      .then(function(rows){ if (rows && rows[0]) { newQ.id = rows[0].id; store("quizQuestions", questions); } })
+      .catch(function(){});
+  }
   ["inQ","inA","inB","inC","inD"].forEach(function(id){ document.getElementById(id).value = ""; });
   pickedCorrect = -1;
   document.querySelectorAll("#correctPick button").forEach(function(b){ b.classList.remove("sel"); });
@@ -342,8 +386,13 @@ function addQuestion() {
   toast("Question saved! ✅");
 }
 function deleteQuestion(i) {
-  questions.splice(i, 1);
+  var removed = questions.splice(i, 1)[0];
   store("quizQuestions", questions);
+  if (cloudOnline && removed && removed.id) {
+    fetch(SUPA_URL + "/rest/v1/quiz_questions?id=eq." + removed.id, {
+      method: "DELETE", headers: SUPA_HEADERS
+    }).catch(function(){});
+  }
   renderList();
   toast("Deleted");
 }
